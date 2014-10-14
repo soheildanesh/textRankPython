@@ -15,6 +15,11 @@ from pygraph.classes.digraph import digraph
 from pygraph.algorithms.pagerank import pagerank
 from pygraph.classes.exceptions import AdditionError
 
+import glob
+
+from os.path import expanduser
+home = expanduser("~")
+
 text = u"""In the Valley, we have lots of euphemisms for changing your business until you find a way to make money: You might throw things at the wall and see what sticks, or go where the money is, or pivot. Whatever you call it, it boils down to a basic animal instinct-the killer instinct. You need to look at the whole picture and attack an area that is vulnerable, and then keep attacking until you have won, or until you find an even more vulnerable spot. Rinse, then repeat.
 
 I have yet to run my own company, but that doesn't stop me from evaluating the ability of a business to harness its killer instinct and fuel its own expansion. I have worked for companies with and without this instinct. I like working for companies with a keen killer instinct.
@@ -29,17 +34,20 @@ Now that I work for a small company, I have had the chance to see killer instinc
 
 
 
-
-def list_files_in_foler(folderPath):
-    folderPath = "/Users/soheildanesh/GitHub/cam"
-    f = []
+def list_files_in_foler(folderPath  = "/Users/soheildanesh/projects/cam/data/datasets/Hulth2003/Test/" ):
     
     #from http://stackoverflow.com/questions/3207219/how-to-list-all-files-of-a-directory-in-python
-    for (dirpath, dirnames, filenames) in walk(folderPath):
-        print("dirpath, dirnames, filenames = %s, %s, %s" %  (dirpath, dirnames, filenames)  ) 
-        f.extend(filenames)
-        break
-    return f
+    print glob.glob(folderPath+"*.abstr")
+
+    #folderPath = "/Users/soheildanesh/GitHub/cam"
+    #f = []
+    
+    #from http://stackoverflow.com/questions/3207219/how-to-list-all-files-of-a-directory-in-python
+    #for (dirpath, dirnames, filenames) in walk(folderPath):
+     #   print("dirpath, dirnames, filenames = %s, %s, %s" %  (dirpath, dirnames, filenames)  ) 
+     #   f.extend(filenames)
+     #   break
+    #return f
 
 def filter_for_tags(tagged, tags=['NN', 'JJ', 'NNP']):
     return [item for item in tagged if item[1] in tags]
@@ -105,7 +113,6 @@ def runtextrank(text):
 
     tagged = nltk.pos_tag(textWordList)
     tagged = filter_for_tags(tagged)
-    print("tagged after filter_for_tags %s" % tagged)
     tagged = normalize(tagged)
 
     unique_word_set = unique_everseen([x[0] for x in tagged])
