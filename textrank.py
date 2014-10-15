@@ -34,10 +34,10 @@ Now that I work for a small company, I have had the chance to see killer instinc
 
 
 
-def list_files_in_foler(folderPath  = "/Users/soheildanesh/projects/cam/data/datasets/Hulth2003/Test/" ):
-    
+def list_files_in_foler(folderPath  = "/Users/soheildanesh/projects/cam/data/datasets/Hulth2003/Test/" , fileExtension = "*.abstr"):
     #from http://stackoverflow.com/questions/3207219/how-to-list-all-files-of-a-directory-in-python
-    print glob.glob(folderPath+"*.abstr")
+    print glob.glob(folderPath+fileExtension)
+    return glob.glob(folderPath+fileExtension)
 
     #folderPath = "/Users/soheildanesh/GitHub/cam"
     #f = []
@@ -106,7 +106,13 @@ def combineAdjacentWords(topWordList, textWordList, text):
                 
     return ouputPhrasesAndWords
 
-
+def runtextrankOnFilesInFoler(folderPath  = "/Users/soheildanesh/projects/cam/data/datasets/Hulth2003/Test/" , fileExtension = "*.abstr"):
+    textFiles = list_files_in_foler(folderPath, fileExtension)
+    for fileName in textFiles:
+        print("filefile = %s" % fileName) #<< now read each file and call textrank(text) then take the result and put it in a file like  url : keyphrase, keyphrase, ... then load this to semeval and measure precision recall, with textrank style
+        file = open(fileName, 'r')
+        text = file.read()
+        print("text = %s" % text)
 
 def runtextrank(text):
     textWordList = nltk.word_tokenize(text)
