@@ -1,3 +1,5 @@
+
+
 """
 From this paper: http://acl.ldc.upenn.edu/acl2004/emnlp/pdf/Mihalcea.pdf 
 
@@ -36,8 +38,12 @@ Now that I work for a small company, I have had the chance to see killer instinc
 
 def list_files_in_foler(folderPath  = "/Users/soheildanesh/projects/cam/data/datasets/Hulth2003/Test/" , fileExtension = "*.abstr"):
     #from http://stackoverflow.com/questions/3207219/how-to-list-all-files-of-a-directory-in-python
-    print glob.glob(folderPath+fileExtension)
-    return glob.glob(folderPath+fileExtension)
+
+    files = glob.glob(folderPath+"*.abstr")
+    return files
+    #DEBUG
+    #print("files = %s" % files)
+    #DEBUG
 
     #folderPath = "/Users/soheildanesh/GitHub/cam"
     #f = []
@@ -74,11 +80,17 @@ def unique_everseen(iterable, key=None):
                 seen_add(k)
                 yield element
 
+
+#to run on macmini and hulth: 
+#textrank.textrankFilesInFolder("/Users/soheild/Documents/projects/cam/data/datasets/Hulth2003/Test/")
 def textrankFilesInFolder(folderPath):
     files = list_files_in_foler(folderPath)
     for file in files:
-        text = open(file)
+        text = open(file).read()
         print(text)
+        phrasesAndWords = runtextrank(text)
+
+        print(phrasesAndWords)
         
 #given a list of words (topWordList) and toneized text (textWordList)  (ie list of words in order as they appear in the original text), combine the words that occur adjacent to each other in the text into multi-word phrases, checks for inclusion in text before including candidates in the returned ones to avoid those candidates saparated by punctuation marks.        
 def combineAdjacentWords(topWordList, textWordList, text):
@@ -88,9 +100,9 @@ def combineAdjacentWords(topWordList, textWordList, text):
     for word in textWordList:
         #word = wordWeight[0]
         word = word.lower()
-        print("word = %s" % (word))
+        #print("word = %s" % (word))
         if word in topWordList:
-            print("word in topWordList = %s" % (word))
+            #print("word in topWordList = %s" % (word))
             if not phraseOrWord: #if phraseOrWord is not nil
                 phraseOrWord = word
             else:
@@ -101,7 +113,7 @@ def combineAdjacentWords(topWordList, textWordList, text):
             if phraseOrWord and phraseOrWord not in ouputPhrasesAndWords and phraseOrWord in text:
                 #if wordOrPhrase is not already in outputPhrasesAndWords list
                 ouputPhrasesAndWords.append(phraseOrWord)
-                print("ouputPhrasesAndWords = %s" % (ouputPhrasesAndWords))
+                #print("ouputPhrasesAndWords = %s" % (ouputPhrasesAndWords))
             phraseOrWord = ""
                 
     return ouputPhrasesAndWords
@@ -132,7 +144,7 @@ def runtextrank(text):
     while 1:
         window_words = tagged[window_start:window_end]
         if len(window_words) == 2:
-            print window_words
+            #print window_words
             try:
                 gr.add_edge((window_words[0][0], window_words[1][0]))
             except AdditionError, e:
@@ -154,12 +166,13 @@ def runtextrank(text):
         topWords.append(wordWeight[0])
     
     phrasesAndWords = combineAdjacentWords(topWords, textWordList, text)
-    print("phrasesAndWords = %s" % phrasesAndWords)
+    #print("phrasesAndWords = %s" % phrasesAndWords)
     ### TAKE TOP 3rd WORDS AND COMBINE THEM ###    
 
 
-    print 'di = %s' % (di)
+    #print 'di = %s' % (di)
     for k, g in itertools.groupby(di, key=itemgetter(1)):
-        print k, map(itemgetter(0), g)
+        #print k, map(itemgetter(0), g)
 
-    return di
+    #return di
+	return phrasesAndWords
