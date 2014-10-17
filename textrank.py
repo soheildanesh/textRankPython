@@ -10,6 +10,8 @@ for questions: http://twitter.com/voidfiles
 """
 import nltk
 import itertools
+import string
+
 from operator import itemgetter
 
 from pygraph.classes.graph import graph
@@ -57,6 +59,13 @@ def list_files_in_foler(folderPath  = "/Users/soheildanesh/projects/cam/data/dat
 
 def filter_for_tags(tagged, tags=['NN', 'JJ', 'NNP']):
     return [item for item in tagged if item[1] in tags]
+    
+def filter_puncs(text):
+    puncs = '!"#$%&\'()*+,./:;<=>?@[\\]^_`{|}~' #set(string.punctuation)
+    replace_punctuation = string.maketrans(puncs, ' '*len(puncs))
+    text = text.translate(replace_punctuation)
+    return text
+    
 
 
 def normalize(tagged):
@@ -82,15 +91,25 @@ def unique_everseen(iterable, key=None):
 
 
 #to run on macmini and hulth: 
-#textrank.textrankFilesInFolder("/Users/soheild/Documents/projects/cam/data/datasets/Hulth2003/Test/")
+#macmini: textrank.textrankFilesInFolder("/Users/soheild/Documents/projects/cam/data/datasets/Hulth2003/Test/")
+#macbookPro: textrank.textrankFilesInFolder("/Users/soheildanesh/projects/cam/data/datasets/Hulth2003/Test/")
 def textrankFilesInFolder(folderPath):
     files = list_files_in_foler(folderPath)
+    outputFile = open('textrankOutput.txt', 'w')
     for file in files:
+        fileName = file.split("/").pop()
         text = open(file).read()
-        print(text)
+        print("fileName = %s" % fileName)
+        print("text = %s" % text)
         phrasesAndWords = runtextrank(text)
+        
+        commaSeparatedListTopCandids = ""
+        for term in phrasesAndWords:
+            commaSeparatedListTopCandids = commaSeparatedListTopCandids + term + ","
+            
+        outputFile.write("%s : %s \n" % (fileName, commaSeparatedListTopCandids))    
 
-        print(phrasesAndWords)
+        print("phrasesAndWords = %s" % phrasesAndWords)
         
 #given a list of words (topWordList) and toneized text (textWordList)  (ie list of words in order as they appear in the original text), combine the words that occur adjacent to each other in the text into multi-word phrases, checks for inclusion in text before including candidates in the returned ones to avoid those candidates saparated by punctuation marks.        
 def combineAdjacentWords(topWordList, textWordList, text):
@@ -117,6 +136,13 @@ def combineAdjacentWords(topWordList, textWordList, text):
             phraseOrWord = ""
                 
     return ouputPhrasesAndWords
+    
+def containsPunctuation(s):
+    puncs = '!"#$%&\'()*+,./:;<=>?@[\\]^_`{|}~' #set(string.punctuation)
+    for punc in puncs:
+        if punc in s:
+            return True
+    return False
 
 def runtextrankOnFilesInFoler(folderPath  = "/Users/soheildanesh/projects/cam/data/datasets/Hulth2003/Test/" , fileExtension = "*.abstr"):
     textFiles = list_files_in_foler(folderPath, fileExtension)
@@ -127,7 +153,12 @@ def runtextrankOnFilesInFoler(folderPath  = "/Users/soheildanesh/projects/cam/da
         print("text = %s" % text)
 
 def runtextrank(text):
-    textWordList = nltk.word_tokenize(text)
+    
+    #REMOVE PUNCTUATIONS FROM TEXT
+    #use punctLess text to rank words but use the virgin text to combine words in combineAdjacentWords so words separated by puncs aren't combined into candidates
+    textWithNoPuncs = filter_puncs(text)
+    
+    textWordList = nltk.word_tokenize(textWithNoPuncs)
 
     tagged = nltk.pos_tag(textWordList)
     tagged = filter_for_tags(tagged)
