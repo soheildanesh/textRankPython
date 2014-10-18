@@ -11,6 +11,7 @@ for questions: http://twitter.com/voidfiles
 import nltk
 import itertools
 import string
+import re
 
 from operator import itemgetter
 
@@ -110,9 +111,62 @@ def textrankFilesInFolder(folderPath):
         outputFile.write("%s : %s \n" % (fileName, commaSeparatedListTopCandids))    
 
         print("phrasesAndWords = %s" % phrasesAndWords)
+    
+    
         
 #given a list of words (topWordList) and toneized text (textWordList)  (ie list of words in order as they appear in the original text), combine the words that occur adjacent to each other in the text into multi-word phrases, checks for inclusion in text before including candidates in the returned ones to avoid those candidates saparated by punctuation marks.        
-def combineAdjacentWords(topWordList, textWordList, text):
+def combineAdjacentWords(topWordList, wordsInOrder, text):
+        
+    phraseOrWord = ""
+    ouputPhrasesAndWords = [] 
+    print("wordsInOrder = %s" % wordsInOrder)
+    for word in wordsInOrder:
+        word = word.lower()
+        print("word = %s" % (word))
+        if word in topWordList:
+            print("word in topWordList = %s" % (word))
+            if not phraseOrWord: #if phraseOrWord is not nil
+                phraseOrWord = word
+            else:
+                phraseOrWord = phraseOrWord + " " + word
+                #strip phraseOrWord: looks like python already strips, not seeing any leading/trailing spaces
+        else:
+            #DEBUG
+            if phraseOrWord:
+                print("phraseOrWord geting potentially added to outputPhrasesAndWords = %s" % phraseOrWord)
+            
+            if not phraseOrWord in text:
+                print("not adding %s because it is not seen in text" % phraseOrWord)
+            #DEBUG    
+            
+            
+            if phraseOrWord and phraseOrWord not in ouputPhrasesAndWords and phraseOrWord in text:
+                #if wordOrPhrase is not already in outputPhrasesAndWords list
+                ouputPhrasesAndWords.append(phraseOrWord)
+                print("Appending to outputPhrasesAndWords = %s" % phraseOrWord)
+            phraseOrWord = ""
+    
+
+    #DEBUG
+    if phraseOrWord:
+        print("phraseOrWord geting potentially added to outputPhrasesAndWords = %s" % phraseOrWord)
+    
+    if not phraseOrWord in text:
+        print("not adding %s because it is not seen in text" % phraseOrWord)
+    #DEBUG
+    
+    ## TAKE CARE OF CASE WHERE LAST WORD OR PHRASE SHOULD BE ADDED TO OUTPUT PHRASES BUT WE'VE ALREADY EXISTED THE LOOP AFTER THE IF AND DONT REACH THE ELSE SO ITS NOT APPENDED ##
+    if phraseOrWord and phraseOrWord not in ouputPhrasesAndWords and phraseOrWord in text:
+        ouputPhrasesAndWords.append(phraseOrWord)
+        print("Appending to outputPhrasesAndWords = %s" % phraseOrWord)
+        
+    print("ouputPhrasesAndWords = %s" % ouputPhrasesAndWords)            
+    return ouputPhrasesAndWords
+
+
+
+
+def _combineAdjacentWords(topWordList, textWordList, text):
     
     phraseOrWord = ""
     ouputPhrasesAndWords = [] 
@@ -122,7 +176,7 @@ def combineAdjacentWords(topWordList, textWordList, text):
         #print("word = %s" % (word))
         if word in topWordList:
             #print("word in topWordList = %s" % (word))
-            if not phraseOrWord: #if phraseOrWord is not nil
+            if not phraseOrWord: #if phraseOrWord is not empty
                 phraseOrWord = word
             else:
                 phraseOrWord = phraseOrWord + " " + word
@@ -154,11 +208,44 @@ def runtextrankOnFilesInFoler(folderPath  = "/Users/soheildanesh/projects/cam/da
 
 def runtextrank(text):
     
+    print("text = %s" % text)
+    
+    ### REPLACE TAGS SUCH AS \n, \r and \t WITH SPACE ###
+    p = re.compile('\t|\n|\r')
+    text = p.sub(" ", text)
+    
+
+    multipSpaces = re.compile('\s+')
+    text = multipSpaces.sub(" ",text)
+    #note ^: above line might create double or multiple white spaces, replace these with singles so no trouble later on when checking if a multi-word is in text before including it as a multi-word candidate in combineAdjacentWords
+    
+    print("text after replacing tabs returns and new lines with space  = %s" % text)
+    ### REPLACE TAGS SUCH AS \n, \r and \t WITH SPACE ###
+ 
+
+
     #REMOVE PUNCTUATIONS FROM TEXT
     #use punctLess text to rank words but use the virgin text to combine words in combineAdjacentWords so words separated by puncs aren't combined into candidates
     textWithNoPuncs = filter_puncs(text)
+    print("textWithNoPuncs = %s" % textWithNoPuncs)
+    #REMOVE PUNCTUATIONS FROM TEXT
     
     textWordList = nltk.word_tokenize(textWithNoPuncs)
+    print("textWordList = %s" % textWordList)
+    
+    
+    #ELIMINATE SINGLE LETTERS
+    #print("textWordList before eliminating single chars = %s" % textWordList)
+    tempWordList = []
+    for word in textWordList:
+        if len(word) > 1:
+            tempWordList.append(word)
+    
+    textWordList = tempWordList
+    #print("textWordList AFTER eliminating single chars = %s" % textWordList)
+    #ELIMINATE SINGLE LETTERS            
+        
+
 
     tagged = nltk.pos_tag(textWordList)
     tagged = filter_for_tags(tagged)
@@ -197,6 +284,7 @@ def runtextrank(text):
         topWords.append(wordWeight[0])
     
     phrasesAndWords = combineAdjacentWords(topWords, textWordList, text)
+    #phrasesAndWords = combineAdjacentWords(topWords, textWordList, text)
     #print("phrasesAndWords = %s" % phrasesAndWords)
     ### TAKE TOP 3rd WORDS AND COMBINE THEM ###    
 
